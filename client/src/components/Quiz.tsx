@@ -1,6 +1,6 @@
-import { useState } from "react";
-import type { Question } from "../models/Question.js";
-import { getQuestions } from "../services/questionApi.js";
+import { useState, } from 'react';
+import type { Question } from '../models/Question.js';
+import { getQuestions } from '../services/questionApi.js';
 
 const Quiz = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -8,33 +8,22 @@ const Quiz = () => {
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const getRandomQuestions = async () => {
-    setLoading(true);
     try {
       const questions = await getQuestions();
-      console.log("Received questions:", questions); // Debug log
 
-      if (!questions || !Array.isArray(questions) || questions.length === 0) {
-        throw new Error("Failed to fetch questions");
+      if (!questions) {
+        throw new Error('something went wrong!');
       }
 
       setQuestions(questions);
-      setError(null);
     } catch (err) {
-      console.error("Error fetching questions:", err);
-      setError("Failed to load questions. Please try again.");
-      setQuestions([]);
-    } finally {
-      setLoading(false);
+      console.error(err);
     }
   };
 
-  const handleAnswerClick = (selectedIndex: number) => {
-    const isCorrect =
-      selectedIndex === questions[currentQuestionIndex].correctAnswer;
+  const handleAnswerClick = (isCorrect: boolean) => {
     if (isCorrect) {
       setScore(score + 1);
     }
@@ -48,36 +37,38 @@ const Quiz = () => {
   };
 
   const handleStartQuiz = async () => {
+    await getRandomQuestions();
     setQuizStarted(true);
     setQuizCompleted(false);
     setScore(0);
     setCurrentQuestionIndex(0);
-    await getRandomQuestions();
   };
 
   if (!quizStarted) {
     return (
       <div className="p-4 text-center">
-        <button
-          data-testid="start-button"
-          className="btn btn-primary d-inline-block mx-auto"
-          onClick={handleStartQuiz}
-        >
+        <button className="btn btn-primary d-inline-block mx-auto" onClick={handleStartQuiz}>
           Start Quiz
         </button>
       </div>
     );
   }
 
-  if (error) {
+  if (quizCompleted) {
     return (
-      <div className="alert alert-danger" data-testid="error-message">
-        {error}
+      <div className="card p-4 text-center">
+        <h2>Quiz Completed</h2>
+        <div className="alert alert-success">
+          Your score: {score}/{questions.length}
+        </div>
+        <button className="btn btn-primary d-inline-block mx-auto" onClick={handleStartQuiz}>
+          Take New Quiz
+        </button>
       </div>
     );
   }
 
-  if (loading) {
+  if (questions.length === 0) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="spinner-border text-primary" role="status">
@@ -87,53 +78,18 @@ const Quiz = () => {
     );
   }
 
-  if (quizCompleted) {
-    return (
-      <div className="card p-4 text-center">
-        <h2>Quiz Completed</h2>
-        <div className="alert alert-success" data-testid="score">
-          Your score: {score}/{questions.length}
-        </div>
-        <button
-          data-testid="new-quiz-button"
-          className="btn btn-primary d-inline-block mx-auto"
-          onClick={handleStartQuiz}
-        >
-          Take New Quiz
-        </button>
-      </div>
-    );
-  }
-
-  if (questions.length === 0) {
-    return (
-      <div className="alert alert-warning">
-        No questions available. Please try again.
-      </div>
-    );
-  }
-
   const currentQuestion = questions[currentQuestionIndex];
-  console.log("Current question:", currentQuestion); // Debug log
 
   return (
-    <div className="card p-4">
-      <h2 data-testid="question">{currentQuestion.question}</h2>
-      <div className="mt-3" data-testid="answers">
-        {currentQuestion.answers.map((answer, index) => (
-          <div key={index} className="d-flex align-items-center mb-2">
-            <button
-              data-testid="answer"
-              className="btn btn-primary"
-              onClick={() => handleAnswerClick(index)}
-            >
-              {index + 1}
-            </button>
-            <div className="alert alert-secondary mb-0 ms-2 flex-grow-1">
-              {answer}
-            </div>
-          </div>
-        ))}
+    <div className='card p-4'>
+      <h2>{currentQuestion.question}</h2>
+      <div className="mt-3">
+      {currentQuestion.answers.map((answer, index) => (
+        <div key={index} className="d-flex align-items-center mb-2">
+          <button className="btn btn-primary" onClick={() => handleAnswerClick(answer.isCorrect)}>{index + 1}</button>
+          <div className="alert alert-secondary mb-0 ms-2 flex-grow-1">{answer.text}</div>
+        </div>
+      ))}
       </div>
     </div>
   );
