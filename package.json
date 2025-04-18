@@ -14,8 +14,9 @@
     "build": "cd server && npm run build",
     "seed": "cd server && npm run seed",
     "render-build": "npm install && npm run build",
-    "cypress": "npx cypress open",
-    "test": "npx cypress run --browser electron --headless"
+    "cypress": "cypress open",
+    "test": "cypress run --component && cypress run --e2e",
+    "test-gui": "npx cypress open --detached"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +32,6 @@
     "react-router-dom": "^6.25.1",
     "typescript": "^5.5.3",
     "vitest": "^2.0.3",
-    "wait-on": "^7.2.0",
-    "@testing-library/cypress": "^10.0.2"
+    "wait-on": "^7.2.0"
   }
 }
